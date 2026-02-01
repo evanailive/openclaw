@@ -76,6 +76,26 @@ const OLLAMA_DEFAULT_COST = {
   cacheWrite: 0,
 };
 
+// Volcengine (火山引擎) Doubao models
+const VOLCENGINE_BASE_URL = "https://ark.cn-beijing.volces.com/api/v3";
+const VOLCENGINE_DEFAULT_MAX_TOKENS = 4096;
+// Pricing: Volcengine pricing varies by model. These are approximate rates in CNY per million tokens.
+// doubao-pro: input 0.8 CNY/M, output 2 CNY/M
+// doubao-lite: input 0.3 CNY/M, output 0.6 CNY/M
+// Converting to USD (approximate): 1 CNY ≈ 0.14 USD
+const VOLCENGINE_PRO_COST = {
+  input: 0.11, // ~0.8 CNY/M tokens
+  output: 0.28, // ~2 CNY/M tokens
+  cacheRead: 0.05,
+  cacheWrite: 0.08,
+};
+const VOLCENGINE_LITE_COST = {
+  input: 0.04, // ~0.3 CNY/M tokens
+  output: 0.08, // ~0.6 CNY/M tokens
+  cacheRead: 0.02,
+  cacheWrite: 0.03,
+};
+
 interface OllamaModel {
   name: string;
   modified_at: string;
@@ -394,6 +414,90 @@ async function buildOllamaProvider(): Promise<ProviderConfig> {
   };
 }
 
+function buildVolcengineProvider(): ProviderConfig {
+  return {
+    baseUrl: VOLCENGINE_BASE_URL,
+    api: "openai-completions",
+    models: [
+      // Pro series - high performance models
+      {
+        id: "doubao-pro-256k",
+        name: "Doubao Pro 256K",
+        reasoning: false,
+        input: ["text"],
+        cost: VOLCENGINE_PRO_COST,
+        contextWindow: 256000,
+        maxTokens: VOLCENGINE_DEFAULT_MAX_TOKENS,
+      },
+      {
+        id: "doubao-pro-128k",
+        name: "Doubao Pro 128K",
+        reasoning: false,
+        input: ["text"],
+        cost: VOLCENGINE_PRO_COST,
+        contextWindow: 128000,
+        maxTokens: VOLCENGINE_DEFAULT_MAX_TOKENS,
+      },
+      {
+        id: "doubao-pro-32k",
+        name: "Doubao Pro 32K",
+        reasoning: false,
+        input: ["text"],
+        cost: VOLCENGINE_PRO_COST,
+        contextWindow: 32000,
+        maxTokens: VOLCENGINE_DEFAULT_MAX_TOKENS,
+      },
+      {
+        id: "doubao-pro-4k",
+        name: "Doubao Pro 4K",
+        reasoning: false,
+        input: ["text"],
+        cost: VOLCENGINE_PRO_COST,
+        contextWindow: 4000,
+        maxTokens: VOLCENGINE_DEFAULT_MAX_TOKENS,
+      },
+      // Lite series - cost-effective models
+      {
+        id: "doubao-lite-128k",
+        name: "Doubao Lite 128K",
+        reasoning: false,
+        input: ["text"],
+        cost: VOLCENGINE_LITE_COST,
+        contextWindow: 128000,
+        maxTokens: VOLCENGINE_DEFAULT_MAX_TOKENS,
+      },
+      {
+        id: "doubao-lite-32k",
+        name: "Doubao Lite 32K",
+        reasoning: false,
+        input: ["text"],
+        cost: VOLCENGINE_LITE_COST,
+        contextWindow: 32000,
+        maxTokens: VOLCENGINE_DEFAULT_MAX_TOKENS,
+      },
+      {
+        id: "doubao-lite-4k",
+        name: "Doubao Lite 4K",
+        reasoning: false,
+        input: ["text"],
+        cost: VOLCENGINE_LITE_COST,
+        contextWindow: 4000,
+        maxTokens: VOLCENGINE_DEFAULT_MAX_TOKENS,
+      },
+      // Vision model
+      {
+        id: "doubao-vision-pro-32k",
+        name: "Doubao Vision Pro 32K",
+        reasoning: false,
+        input: ["text", "image"],
+        cost: VOLCENGINE_PRO_COST,
+        contextWindow: 32000,
+        maxTokens: VOLCENGINE_DEFAULT_MAX_TOKENS,
+      },
+    ],
+  };
+}
+
 export async function resolveImplicitProviders(params: {
   agentDir: string;
 }): Promise<ModelsConfig["providers"]> {
@@ -459,6 +563,14 @@ export async function resolveImplicitProviders(params: {
     resolveApiKeyFromProfiles({ provider: "ollama", store: authStore });
   if (ollamaKey) {
     providers.ollama = { ...(await buildOllamaProvider()), apiKey: ollamaKey };
+  }
+
+  // Volcengine (火山引擎) provider - Doubao models
+  const volcengineKey =
+    resolveEnvApiKeyVarName("volcengine") ??
+    resolveApiKeyFromProfiles({ provider: "volcengine", store: authStore });
+  if (volcengineKey) {
+    providers.volcengine = { ...buildVolcengineProvider(), apiKey: volcengineKey };
   }
 
   return providers;
