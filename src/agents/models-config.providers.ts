@@ -76,6 +76,32 @@ const OLLAMA_DEFAULT_COST = {
   cacheWrite: 0,
 };
 
+// Aliyun DashScope (阿里云百炼) - Qwen models
+const DASHSCOPE_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1";
+const DASHSCOPE_DEFAULT_MAX_TOKENS = 8192;
+// Pricing: Approximate rates in CNY per million tokens, converted to USD
+// qwen-turbo: input 0.3 CNY/M, output 0.6 CNY/M
+// qwen-plus: input 0.8 CNY/M, output 2 CNY/M
+// qwen-max: input 2 CNY/M, output 6 CNY/M
+const DASHSCOPE_TURBO_COST = {
+  input: 0.04,
+  output: 0.08,
+  cacheRead: 0.02,
+  cacheWrite: 0.03,
+};
+const DASHSCOPE_PLUS_COST = {
+  input: 0.11,
+  output: 0.28,
+  cacheRead: 0.05,
+  cacheWrite: 0.08,
+};
+const DASHSCOPE_MAX_COST = {
+  input: 0.28,
+  output: 0.84,
+  cacheRead: 0.14,
+  cacheWrite: 0.20,
+};
+
 // Volcengine (火山引擎) Doubao models
 const VOLCENGINE_BASE_URL = "https://ark.cn-beijing.volces.com/api/v3";
 const VOLCENGINE_DEFAULT_MAX_TOKENS = 4096;
@@ -414,6 +440,92 @@ async function buildOllamaProvider(): Promise<ProviderConfig> {
   };
 }
 
+function buildDashscopeProvider(): ProviderConfig {
+  return {
+    baseUrl: DASHSCOPE_BASE_URL,
+    api: "openai-completions",
+    models: [
+      // Qwen Max series - flagship models
+      {
+        id: "qwen-max",
+        name: "Qwen Max",
+        reasoning: false,
+        input: ["text"],
+        cost: DASHSCOPE_MAX_COST,
+        contextWindow: 32000,
+        maxTokens: DASHSCOPE_DEFAULT_MAX_TOKENS,
+      },
+      {
+        id: "qwen-max-longcontext",
+        name: "Qwen Max Long Context",
+        reasoning: false,
+        input: ["text"],
+        cost: DASHSCOPE_MAX_COST,
+        contextWindow: 1000000,
+        maxTokens: DASHSCOPE_DEFAULT_MAX_TOKENS,
+      },
+      // Qwen Plus series - balanced performance
+      {
+        id: "qwen-plus",
+        name: "Qwen Plus",
+        reasoning: false,
+        input: ["text"],
+        cost: DASHSCOPE_PLUS_COST,
+        contextWindow: 131072,
+        maxTokens: DASHSCOPE_DEFAULT_MAX_TOKENS,
+      },
+      // Qwen Turbo series - fast and economical
+      {
+        id: "qwen-turbo",
+        name: "Qwen Turbo",
+        reasoning: false,
+        input: ["text"],
+        cost: DASHSCOPE_TURBO_COST,
+        contextWindow: 131072,
+        maxTokens: DASHSCOPE_DEFAULT_MAX_TOKENS,
+      },
+      // Vision models
+      {
+        id: "qwen-vl-max",
+        name: "Qwen VL Max",
+        reasoning: false,
+        input: ["text", "image"],
+        cost: DASHSCOPE_MAX_COST,
+        contextWindow: 32000,
+        maxTokens: DASHSCOPE_DEFAULT_MAX_TOKENS,
+      },
+      {
+        id: "qwen-vl-plus",
+        name: "Qwen VL Plus",
+        reasoning: false,
+        input: ["text", "image"],
+        cost: DASHSCOPE_PLUS_COST,
+        contextWindow: 32000,
+        maxTokens: DASHSCOPE_DEFAULT_MAX_TOKENS,
+      },
+      // Coder models
+      {
+        id: "qwen-coder-plus",
+        name: "Qwen Coder Plus",
+        reasoning: false,
+        input: ["text"],
+        cost: DASHSCOPE_PLUS_COST,
+        contextWindow: 131072,
+        maxTokens: DASHSCOPE_DEFAULT_MAX_TOKENS,
+      },
+      {
+        id: "qwen-coder-turbo",
+        name: "Qwen Coder Turbo",
+        reasoning: false,
+        input: ["text"],
+        cost: DASHSCOPE_TURBO_COST,
+        contextWindow: 131072,
+        maxTokens: DASHSCOPE_DEFAULT_MAX_TOKENS,
+      },
+    ],
+  };
+}
+
 function buildVolcengineProvider(): ProviderConfig {
   return {
     baseUrl: VOLCENGINE_BASE_URL,
@@ -581,6 +693,14 @@ export async function resolveImplicitProviders(params: {
     resolveApiKeyFromProfiles({ provider: "volcengine", store: authStore });
   if (volcengineKey) {
     providers.volcengine = { ...buildVolcengineProvider(), apiKey: volcengineKey };
+  }
+
+  // Aliyun DashScope (阿里云百炼) provider - Qwen models
+  const dashscopeKey =
+    resolveEnvApiKeyVarName("dashscope") ??
+    resolveApiKeyFromProfiles({ provider: "dashscope", store: authStore });
+  if (dashscopeKey) {
+    providers.dashscope = { ...buildDashscopeProvider(), apiKey: dashscopeKey };
   }
 
   return providers;

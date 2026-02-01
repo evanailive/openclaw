@@ -288,6 +288,10 @@ export function resolveEnvApiKey(provider: string): EnvApiKeyResult | null {
     return pick("ARK_API_KEY") ?? pick("VOLC_API_KEY") ?? pick("VOLCENGINE_API_KEY");
   }
 
+  if (normalized === "dashscope") {
+    return pick("DASHSCOPE_API_KEY") ?? pick("ALIYUN_API_KEY");
+  }
+
   const envMap: Record<string, string> = {
     openai: "OPENAI_API_KEY",
     google: "GEMINI_API_KEY",
