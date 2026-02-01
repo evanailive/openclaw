@@ -419,6 +419,16 @@ function buildVolcengineProvider(): ProviderConfig {
     baseUrl: VOLCENGINE_BASE_URL,
     api: "openai-completions",
     models: [
+      // Default model - Doubao Seed 1.8 (latest flagship model)
+      {
+        id: "doubao-seed-1-8-251228",
+        name: "Doubao Seed 1.8",
+        reasoning: false,
+        input: ["text", "image"],
+        cost: VOLCENGINE_PRO_COST,
+        contextWindow: 128000,
+        maxTokens: VOLCENGINE_DEFAULT_MAX_TOKENS,
+      },
       // Pro series - high performance models
       {
         id: "doubao-pro-256k",
