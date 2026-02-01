@@ -1,5 +1,14 @@
 import type { OpenClawConfig } from "../config/config.js";
-import { buildXiaomiProvider, XIAOMI_DEFAULT_MODEL_ID } from "../agents/models-config.providers.js";
+import {
+  buildXiaomiProvider,
+  XIAOMI_DEFAULT_MODEL_ID,
+  buildVolcengineProvider,
+  VOLCENGINE_BASE_URL,
+  VOLCENGINE_DEFAULT_MODEL_ID,
+  buildDashscopeProvider,
+  DASHSCOPE_BASE_URL,
+  DASHSCOPE_DEFAULT_MODEL_ID,
+} from "../agents/models-config.providers.js";
 import {
   buildSyntheticModelDefinition,
   SYNTHETIC_BASE_URL,
@@ -17,6 +26,8 @@ import {
   VERCEL_AI_GATEWAY_DEFAULT_MODEL_REF,
   XIAOMI_DEFAULT_MODEL_REF,
   ZAI_DEFAULT_MODEL_REF,
+  VOLCENGINE_DEFAULT_MODEL_REF,
+  DASHSCOPE_DEFAULT_MODEL_REF,
 } from "./onboard-auth.credentials.js";
 import {
   buildMoonshotModelDefinition,
@@ -502,6 +513,160 @@ export function applyAuthProfileConfig(
       ...cfg.auth,
       profiles,
       ...(order ? { order } : {}),
+    },
+  };
+}
+
+/**
+ * Apply Volcengine (火山引擎) provider configuration without changing the default model.
+ */
+export function applyVolcengineProviderConfig(cfg: OpenClawConfig): OpenClawConfig {
+  const models = { ...cfg.agents?.defaults?.models };
+  models[VOLCENGINE_DEFAULT_MODEL_REF] = {
+    ...models[VOLCENGINE_DEFAULT_MODEL_REF],
+    alias: models[VOLCENGINE_DEFAULT_MODEL_REF]?.alias ?? "Doubao",
+  };
+
+  const providers = { ...cfg.models?.providers };
+  const existingProvider = providers.volcengine;
+  const defaultProvider = buildVolcengineProvider();
+  const existingModels = Array.isArray(existingProvider?.models) ? existingProvider.models : [];
+  const defaultModels = defaultProvider.models ?? [];
+  const hasDefaultModel = existingModels.some((model) => model.id === VOLCENGINE_DEFAULT_MODEL_ID);
+  const mergedModels =
+    existingModels.length > 0
+      ? hasDefaultModel
+        ? existingModels
+        : [...existingModels, ...defaultModels]
+      : defaultModels;
+  const { apiKey: existingApiKey, ...existingProviderRest } = (existingProvider ?? {}) as Record<
+    string,
+    unknown
+  > as { apiKey?: string };
+  const resolvedApiKey = typeof existingApiKey === "string" ? existingApiKey : undefined;
+  const normalizedApiKey = resolvedApiKey?.trim();
+  providers.volcengine = {
+    ...existingProviderRest,
+    baseUrl: VOLCENGINE_BASE_URL,
+    api: "openai-completions",
+    ...(normalizedApiKey ? { apiKey: normalizedApiKey } : {}),
+    models: mergedModels.length > 0 ? mergedModels : defaultProvider.models,
+  };
+
+  return {
+    ...cfg,
+    agents: {
+      ...cfg.agents,
+      defaults: {
+        ...cfg.agents?.defaults,
+        models,
+      },
+    },
+    models: {
+      mode: cfg.models?.mode ?? "merge",
+      providers,
+    },
+  };
+}
+
+/**
+ * Apply Volcengine provider configuration AND set Volcengine as the default model.
+ */
+export function applyVolcengineConfig(cfg: OpenClawConfig): OpenClawConfig {
+  const next = applyVolcengineProviderConfig(cfg);
+  const existingModel = next.agents?.defaults?.model;
+  return {
+    ...next,
+    agents: {
+      ...next.agents,
+      defaults: {
+        ...next.agents?.defaults,
+        model: {
+          ...(existingModel && "fallbacks" in (existingModel as Record<string, unknown>)
+            ? {
+                fallbacks: (existingModel as { fallbacks?: string[] }).fallbacks,
+              }
+            : undefined),
+          primary: VOLCENGINE_DEFAULT_MODEL_REF,
+        },
+      },
+    },
+  };
+}
+
+/**
+ * Apply DashScope (阿里云百炼) provider configuration without changing the default model.
+ */
+export function applyDashscopeProviderConfig(cfg: OpenClawConfig): OpenClawConfig {
+  const models = { ...cfg.agents?.defaults?.models };
+  models[DASHSCOPE_DEFAULT_MODEL_REF] = {
+    ...models[DASHSCOPE_DEFAULT_MODEL_REF],
+    alias: models[DASHSCOPE_DEFAULT_MODEL_REF]?.alias ?? "Qwen",
+  };
+
+  const providers = { ...cfg.models?.providers };
+  const existingProvider = providers.dashscope;
+  const defaultProvider = buildDashscopeProvider();
+  const existingModels = Array.isArray(existingProvider?.models) ? existingProvider.models : [];
+  const defaultModels = defaultProvider.models ?? [];
+  const hasDefaultModel = existingModels.some((model) => model.id === DASHSCOPE_DEFAULT_MODEL_ID);
+  const mergedModels =
+    existingModels.length > 0
+      ? hasDefaultModel
+        ? existingModels
+        : [...existingModels, ...defaultModels]
+      : defaultModels;
+  const { apiKey: existingApiKey, ...existingProviderRest } = (existingProvider ?? {}) as Record<
+    string,
+    unknown
+  > as { apiKey?: string };
+  const resolvedApiKey = typeof existingApiKey === "string" ? existingApiKey : undefined;
+  const normalizedApiKey = resolvedApiKey?.trim();
+  providers.dashscope = {
+    ...existingProviderRest,
+    baseUrl: DASHSCOPE_BASE_URL,
+    api: "openai-completions",
+    ...(normalizedApiKey ? { apiKey: normalizedApiKey } : {}),
+    models: mergedModels.length > 0 ? mergedModels : defaultProvider.models,
+  };
+
+  return {
+    ...cfg,
+    agents: {
+      ...cfg.agents,
+      defaults: {
+        ...cfg.agents?.defaults,
+        models,
+      },
+    },
+    models: {
+      mode: cfg.models?.mode ?? "merge",
+      providers,
+    },
+  };
+}
+
+/**
+ * Apply DashScope provider configuration AND set DashScope as the default model.
+ */
+export function applyDashscopeConfig(cfg: OpenClawConfig): OpenClawConfig {
+  const next = applyDashscopeProviderConfig(cfg);
+  const existingModel = next.agents?.defaults?.model;
+  return {
+    ...next,
+    agents: {
+      ...next.agents,
+      defaults: {
+        ...next.agents?.defaults,
+        model: {
+          ...(existingModel && "fallbacks" in (existingModel as Record<string, unknown>)
+            ? {
+                fallbacks: (existingModel as { fallbacks?: string[] }).fallbacks,
+              }
+            : undefined),
+          primary: DASHSCOPE_DEFAULT_MODEL_REF,
+        },
+      },
     },
   };
 }

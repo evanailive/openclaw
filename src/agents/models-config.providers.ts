@@ -77,7 +77,8 @@ const OLLAMA_DEFAULT_COST = {
 };
 
 // Aliyun DashScope (阿里云百炼) - Qwen models
-const DASHSCOPE_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1";
+export const DASHSCOPE_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1";
+export const DASHSCOPE_DEFAULT_MODEL_ID = "qwen-max";
 const DASHSCOPE_DEFAULT_MAX_TOKENS = 8192;
 // Pricing: Approximate rates in CNY per million tokens, converted to USD
 // qwen-turbo: input 0.3 CNY/M, output 0.6 CNY/M
@@ -99,11 +100,12 @@ const DASHSCOPE_MAX_COST = {
   input: 0.28,
   output: 0.84,
   cacheRead: 0.14,
-  cacheWrite: 0.20,
+  cacheWrite: 0.2,
 };
 
 // Volcengine (火山引擎) Doubao models
-const VOLCENGINE_BASE_URL = "https://ark.cn-beijing.volces.com/api/v3";
+export const VOLCENGINE_BASE_URL = "https://ark.cn-beijing.volces.com/api/v3";
+export const VOLCENGINE_DEFAULT_MODEL_ID = "doubao-seed-1-8-251228";
 const VOLCENGINE_DEFAULT_MAX_TOKENS = 4096;
 // Pricing: Volcengine pricing varies by model. These are approximate rates in CNY per million tokens.
 // doubao-pro: input 0.8 CNY/M, output 2 CNY/M
@@ -440,7 +442,7 @@ async function buildOllamaProvider(): Promise<ProviderConfig> {
   };
 }
 
-function buildDashscopeProvider(): ProviderConfig {
+export function buildDashscopeProvider(): ProviderConfig {
   return {
     baseUrl: DASHSCOPE_BASE_URL,
     api: "openai-completions",
@@ -526,7 +528,7 @@ function buildDashscopeProvider(): ProviderConfig {
   };
 }
 
-function buildVolcengineProvider(): ProviderConfig {
+export function buildVolcengineProvider(): ProviderConfig {
   return {
     baseUrl: VOLCENGINE_BASE_URL,
     api: "openai-completions",

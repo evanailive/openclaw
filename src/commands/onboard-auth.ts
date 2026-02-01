@@ -20,6 +20,12 @@ export {
   applyXiaomiConfig,
   applyXiaomiProviderConfig,
   applyZaiConfig,
+  // Volcengine (火山引擎)
+  applyVolcengineConfig,
+  applyVolcengineProviderConfig,
+  // Aliyun DashScope (阿里云百炼)
+  applyDashscopeConfig,
+  applyDashscopeProviderConfig,
 } from "./onboard-auth.config-core.js";
 export {
   applyMinimaxApiConfig,
@@ -52,6 +58,12 @@ export {
   VERCEL_AI_GATEWAY_DEFAULT_MODEL_REF,
   XIAOMI_DEFAULT_MODEL_REF,
   ZAI_DEFAULT_MODEL_REF,
+  // Volcengine (火山引擎)
+  VOLCENGINE_DEFAULT_MODEL_REF,
+  setVolcengineApiKey,
+  // Aliyun DashScope (阿里云百炼)
+  DASHSCOPE_DEFAULT_MODEL_REF,
+  setDashscopeApiKey,
 } from "./onboard-auth.credentials.js";
 export {
   buildMinimaxApiModelDefinition,

@@ -21,7 +21,9 @@ export type AuthChoiceGroupId =
   | "minimax"
   | "synthetic"
   | "venice"
-  | "qwen";
+  | "qwen"
+  | "volcengine"
+  | "dashscope";
 
 export type AuthChoiceGroup = {
   value: AuthChoiceGroupId;
@@ -120,6 +122,18 @@ const AUTH_CHOICE_GROUP_DEFS: {
     hint: "Privacy-focused (uncensored models)",
     choices: ["venice-api-key"],
   },
+  {
+    value: "volcengine",
+    label: "Volcengine (火山引擎)",
+    hint: "Doubao models",
+    choices: ["volcengine-api-key"],
+  },
+  {
+    value: "dashscope",
+    label: "Aliyun DashScope (阿里云百炼)",
+    hint: "Qwen models",
+    choices: ["dashscope-api-key"],
+  },
 ];
 
 export function buildAuthChoiceOptions(params: {
@@ -198,6 +212,16 @@ export function buildAuthChoiceOptions(params: {
     value: "minimax-api-lightning",
     label: "MiniMax M2.1 Lightning",
     hint: "Faster, higher output cost",
+  });
+  options.push({
+    value: "volcengine-api-key",
+    label: "Volcengine (火山引擎) API key",
+    hint: "Doubao series models",
+  });
+  options.push({
+    value: "dashscope-api-key",
+    label: "Aliyun DashScope (阿里云百炼) API key",
+    hint: "Qwen series models",
   });
   if (params.includeSkip) {
     options.push({ value: "skip", label: "Skip for now" });

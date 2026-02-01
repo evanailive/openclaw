@@ -30,6 +30,10 @@ import {
   applyXiaomiConfig,
   applyXiaomiProviderConfig,
   applyZaiConfig,
+  applyVolcengineConfig,
+  applyVolcengineProviderConfig,
+  applyDashscopeConfig,
+  applyDashscopeProviderConfig,
   KIMI_CODING_MODEL_REF,
   MOONSHOT_DEFAULT_MODEL_REF,
   OPENROUTER_DEFAULT_MODEL_REF,
@@ -37,6 +41,8 @@ import {
   VENICE_DEFAULT_MODEL_REF,
   VERCEL_AI_GATEWAY_DEFAULT_MODEL_REF,
   XIAOMI_DEFAULT_MODEL_REF,
+  VOLCENGINE_DEFAULT_MODEL_REF,
+  DASHSCOPE_DEFAULT_MODEL_REF,
   setGeminiApiKey,
   setKimiCodingApiKey,
   setMoonshotApiKey,
@@ -47,6 +53,8 @@ import {
   setVercelAiGatewayApiKey,
   setXiaomiApiKey,
   setZaiApiKey,
+  setVolcengineApiKey,
+  setDashscopeApiKey,
   ZAI_DEFAULT_MODEL_REF,
 } from "./onboard-auth.js";
 import { OPENCODE_ZEN_DEFAULT_MODEL } from "./opencode-zen-model-default.js";
@@ -634,6 +642,124 @@ export async function applyAuthChoiceApiProviders(
         applyDefaultConfig: applyOpencodeZenConfig,
         applyProviderConfig: applyOpencodeZenProviderConfig,
         noteDefault: OPENCODE_ZEN_DEFAULT_MODEL,
+        noteAgentModel,
+        prompter: params.prompter,
+      });
+      nextConfig = applied.config;
+      agentModelOverride = applied.agentModelOverride ?? agentModelOverride;
+    }
+    return { config: nextConfig, agentModelOverride };
+  }
+
+  if (authChoice === "volcengine-api-key") {
+    let hasCredential = false;
+
+    if (!hasCredential && params.opts?.token && params.opts?.tokenProvider === "volcengine") {
+      await setVolcengineApiKey(normalizeApiKeyInput(params.opts.token), params.agentDir);
+      hasCredential = true;
+    }
+
+    if (!hasCredential) {
+      await params.prompter.note(
+        [
+          "Volcengine (火山引擎) provides Doubao series models.",
+          "Get your API key at: https://console.volcengine.com/ark",
+          "Supported env vars: ARK_API_KEY, VOLC_API_KEY, VOLCENGINE_API_KEY",
+        ].join("\n"),
+        "Volcengine (火山引擎)",
+      );
+    }
+
+    const envKey = resolveEnvApiKey("volcengine");
+    if (envKey) {
+      const useExisting = await params.prompter.confirm({
+        message: `Use existing API key (${envKey.source}, ${formatApiKeyPreview(envKey.apiKey)})?`,
+        initialValue: true,
+      });
+      if (useExisting) {
+        await setVolcengineApiKey(envKey.apiKey, params.agentDir);
+        hasCredential = true;
+      }
+    }
+    if (!hasCredential) {
+      const key = await params.prompter.text({
+        message: "Enter Volcengine API key",
+        validate: validateApiKeyInput,
+      });
+      await setVolcengineApiKey(normalizeApiKeyInput(String(key)), params.agentDir);
+    }
+    nextConfig = applyAuthProfileConfig(nextConfig, {
+      profileId: "volcengine:default",
+      provider: "volcengine",
+      mode: "api_key",
+    });
+    {
+      const applied = await applyDefaultModelChoice({
+        config: nextConfig,
+        setDefaultModel: params.setDefaultModel,
+        defaultModel: VOLCENGINE_DEFAULT_MODEL_REF,
+        applyDefaultConfig: applyVolcengineConfig,
+        applyProviderConfig: applyVolcengineProviderConfig,
+        noteDefault: VOLCENGINE_DEFAULT_MODEL_REF,
+        noteAgentModel,
+        prompter: params.prompter,
+      });
+      nextConfig = applied.config;
+      agentModelOverride = applied.agentModelOverride ?? agentModelOverride;
+    }
+    return { config: nextConfig, agentModelOverride };
+  }
+
+  if (authChoice === "dashscope-api-key") {
+    let hasCredential = false;
+
+    if (!hasCredential && params.opts?.token && params.opts?.tokenProvider === "dashscope") {
+      await setDashscopeApiKey(normalizeApiKeyInput(params.opts.token), params.agentDir);
+      hasCredential = true;
+    }
+
+    if (!hasCredential) {
+      await params.prompter.note(
+        [
+          "Aliyun DashScope (阿里云百炼) provides Qwen series models.",
+          "Get your API key at: https://dashscope.console.aliyun.com/",
+          "Supported env vars: DASHSCOPE_API_KEY, ALIYUN_API_KEY",
+        ].join("\n"),
+        "Aliyun DashScope (阿里云百炼)",
+      );
+    }
+
+    const envKey = resolveEnvApiKey("dashscope");
+    if (envKey) {
+      const useExisting = await params.prompter.confirm({
+        message: `Use existing API key (${envKey.source}, ${formatApiKeyPreview(envKey.apiKey)})?`,
+        initialValue: true,
+      });
+      if (useExisting) {
+        await setDashscopeApiKey(envKey.apiKey, params.agentDir);
+        hasCredential = true;
+      }
+    }
+    if (!hasCredential) {
+      const key = await params.prompter.text({
+        message: "Enter DashScope API key",
+        validate: validateApiKeyInput,
+      });
+      await setDashscopeApiKey(normalizeApiKeyInput(String(key)), params.agentDir);
+    }
+    nextConfig = applyAuthProfileConfig(nextConfig, {
+      profileId: "dashscope:default",
+      provider: "dashscope",
+      mode: "api_key",
+    });
+    {
+      const applied = await applyDefaultModelChoice({
+        config: nextConfig,
+        setDefaultModel: params.setDefaultModel,
+        defaultModel: DASHSCOPE_DEFAULT_MODEL_REF,
+        applyDefaultConfig: applyDashscopeConfig,
+        applyProviderConfig: applyDashscopeProviderConfig,
+        noteDefault: DASHSCOPE_DEFAULT_MODEL_REF,
         noteAgentModel,
         prompter: params.prompter,
       });

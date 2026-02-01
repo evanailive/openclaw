@@ -178,3 +178,33 @@ export async function setOpencodeZenApiKey(key: string, agentDir?: string) {
     agentDir: resolveAuthAgentDir(agentDir),
   });
 }
+
+// Volcengine (火山引擎) - Doubao models
+export const VOLCENGINE_DEFAULT_MODEL_REF = "volcengine/doubao-seed-1-8-251228";
+
+export async function setVolcengineApiKey(key: string, agentDir?: string) {
+  upsertAuthProfile({
+    profileId: "volcengine:default",
+    credential: {
+      type: "api_key",
+      provider: "volcengine",
+      key,
+    },
+    agentDir: resolveAuthAgentDir(agentDir),
+  });
+}
+
+// Aliyun DashScope (阿里云百炼) - Qwen models
+export const DASHSCOPE_DEFAULT_MODEL_REF = "dashscope/qwen-max";
+
+export async function setDashscopeApiKey(key: string, agentDir?: string) {
+  upsertAuthProfile({
+    profileId: "dashscope:default",
+    credential: {
+      type: "api_key",
+      provider: "dashscope",
+      key,
+    },
+    agentDir: resolveAuthAgentDir(agentDir),
+  });
+}
